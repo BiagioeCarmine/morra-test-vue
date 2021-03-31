@@ -1,11 +1,16 @@
 <template>
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </div>
+  <logout />
   <router-view />
 </template>
+<script>
+import Logout from '@/components/Logout';
 
+export default {
+  components: {
+    Logout
+  }
+}
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
