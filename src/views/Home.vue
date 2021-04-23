@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <h1>Gioca</h1>
-    <div v-if="connected">
       <div v-if="waiting">
         <h1 style="color: green">Sei in attesa. Abbi pazienza.</h1>
         <span v-if="inPrivateQueue">User ID: {{ userId }}</span>
@@ -18,13 +17,11 @@
           <button>Gioca con amico</button>
         </form>
       </div>
-    </div>
-    <span v-else style="color: red">Caricamento in corso</span>
   </div>
 </template>
 
 <script>
-import {io} from "socket.io-client";
+import backend from "../backend";
 
 export default {
   name: "Home",
@@ -48,42 +45,54 @@ export default {
     }
 
     console.log("non andiamo al login");
-    this.socket = io("https://morra.carminezacc.com/mm", { transports: ["websocket"] });
-
-    this.socket.on("match created", data => {
-      location.href = "/#/play?match="+data
-    });
-
 
     this.token = token
     this.userId = JSON.parse(atob(token.split(".")[1])).id;
 
-    this.socket.on("connect", () => {this.connected = true})
       
   },
   methods: {
-    addToPublicQueue() {
-      this.socket.emit("queue", this.token, data => {
-        if(data == "OK") {
-          this.waiting = true;
-        } else alert(data);
-      });
+    playMatch(id) {
+      location.href = `/#/play?match=${id}`
+    },
+    async pollForMatches() {
+      let res = await backend.getQueueStatus(this.token);
+      if(res.status == 201) {
+        this.playMatch(res.data.match);
+      } else if(res.status == 200) {
+        let pollTime = new Date(res.data.pollBefore);
+        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+      } else {
+        console.log(`stato sconosciuto: ${res.status}: ${res.data}`);
+      }
+    },
+    async addToPublicQueue() {
+      let res = await backend.addToPublicQueue(this.token);
+      if(res.status == 201) {
+        this.playMatch(res.data.match);
+      } else if(res.status == 200) {
+        this.waiting = true;
+        let pollTime = new Date(res.data.pollBefore);
+        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+      } else {
+        console.log(`stato sconosciuto: ${res.status}: ${res.data}`);
+      }
       
     },
-    addToPrivateQueue() {
-      this.socket.emit("private_queue", this.token, data => {
-        if(data == "OK") {
-          this.waiting = true;
-          this.inPrivateQueue = true;
-        } else alert(data);
-      });
+    async addToPrivateQueue() {
+      let res = await backend.addToPublicQueue(this.token);
+      this.waiting = true;
+      this.inPrivateQueue = true;
+      let pollTime = new Date(res.data.pollBefore);
+      setTimeout(() => {this.pollForMatches()}, pollTime.getTime()-Date.now());
     },
-    playWithFriend() {
-      this.socket.emit("play_with_friend", this.token, this.friendId, data => {
-        if(data != "OK") {
-          alert(data);
-        }
-      });
+    async playWithFriend() {
+      try {  
+        let res = await backend.playWithFriend(this.friendId, this.token);
+        this.playMatch(res.data.match);
+      } catch(e) {
+        alert("l'utente selezionato non è online");
+      }
     }
   }
 }
