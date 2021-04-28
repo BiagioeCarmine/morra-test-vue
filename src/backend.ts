@@ -1,9 +1,11 @@
 import axios from 'axios';
 
+const URL = "http://localhost:5000"
+
 export default {
     async logIn(username: string, password: string) {
         const res = await axios.post(
-            "https://morra.carminezacc.com/users/login",
+            URL+"/users/login",
             `username=${username}&password=${password}`,
             {
                 headers: {
@@ -16,7 +18,7 @@ export default {
     },
     async signUp(username: string, password: string) {
         const res = await axios.post(
-            "https://morra.carminezacc.com/users/signup",
+            URL+"/users/signup",
             `username=${username}&password=${password}`,
             {
                 headers: {
@@ -29,7 +31,7 @@ export default {
     },
     async addToPublicQueue(jwt: string) {
         const res = await axios.post(
-            `https://morra.carminezacc.com/mm/queue`,'type=public',
+            URL+`/mm/queue`,'type=public',
             {
                 headers: {
                     "Authorization": "Bearer "+jwt
@@ -42,7 +44,7 @@ export default {
     },
     async getQueueStatus(jwt: string) {
         const res = await axios.get(
-            `https://morra.carminezacc.com/mm/queue_status`,
+            URL+`/mm/queue_status`,
             {
                 headers: {
                     "Authorization": "Bearer "+jwt
@@ -56,7 +58,7 @@ export default {
     async addToPrivateQueue(jwt: string) {
 
         const res = await axios.post(
-            `https://morra.carminezacc.com/mm/queue`,'type=private',
+            URL+`/mm/queue`,'type=private',
             {
                 headers: {
                     "Authorization": "Bearer "+jwt
@@ -68,7 +70,7 @@ export default {
     },
     async playWithFriend(userid: string, jwt: string) {
         const res = await axios.post(
-            `https://morra.carminezacc.com/mm/play_with_friend`,
+            URL+`/mm/play_with_friend`,
             "user="+userid,
             {
                 headers: {
@@ -81,7 +83,7 @@ export default {
     },
     async setMove(hand: string, prediction: string, matchid: string, jwt: string) {
         const res = await axios.post(
-            `https://morra.carminezacc.com/matches/${matchid}/move`,
+            URL+`/matches/${matchid}/move`,
             `hand=${hand}&prediction=${prediction}`,
             {
                 headers: {
@@ -95,8 +97,16 @@ export default {
     },
     async getMove(matchid: string) {
         const res = await axios.get(
-            `https://morra.carminezacc.com/matches/${matchid}/move`,
+            URL+`/matches/${matchid}/last_round`,
             
-        )
+        );
+        console.log(res);
+        return res;
+    },
+    async getMatch(id: string) {
+        const res = await axios.get(
+            URL+"/matches/"+id
+        );
+        return res.data;
     }
 }

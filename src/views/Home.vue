@@ -51,40 +51,52 @@ export default {
 
       
   },
+  beforeRouteLeave: function() {
+    this.waiting = false;
+  },
   methods: {
     playMatch(id) {
       location.href = `/#/play?match=${id}`
     },
+    handlePolling(data) {
+      if(!this.waiting) return;
+      if(data.inQueue == true) {
+        let pollTime = new Date(data.pollBefore);
+        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+      } else {
+        this.waiting = false;
+        this.inPrivateQueue = false;
+        console.log("utente rimosso per inattività");
+      }
+    },
     async pollForMatches() {
+      if(!this.waiting) return;
       let res = await backend.getQueueStatus(this.token);
-      if(res.status == 201) {
+      if(res.status == 201 || res.data.created) {
         this.playMatch(res.data.match);
       } else if(res.status == 200) {
-        let pollTime = new Date(res.data.pollBefore);
-        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+        this.handlePolling(res.data);
       } else {
         console.log(`stato sconosciuto: ${res.status}: ${res.data}`);
       }
     },
     async addToPublicQueue() {
       let res = await backend.addToPublicQueue(this.token);
-      if(res.status == 201) {
+      if(res.status == 201 || res.data.created) {
         this.playMatch(res.data.match);
       } else if(res.status == 200) {
         this.waiting = true;
-        let pollTime = new Date(res.data.pollBefore);
-        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+        this.handlePolling(res.data);
       } else {
         console.log(`stato sconosciuto: ${res.status}: ${res.data}`);
       }
       
     },
     async addToPrivateQueue() {
-      let res = await backend.addToPublicQueue(this.token);
+      let res = await backend.addToPrivateQueue(this.token);
       this.waiting = true;
       this.inPrivateQueue = true;
-      let pollTime = new Date(res.data.pollBefore);
-      setTimeout(() => {this.pollForMatches()}, pollTime.getTime()-Date.now());
+      this.handlePolling(res.data);
     },
     async playWithFriend() {
       try {  
