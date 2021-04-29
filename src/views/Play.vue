@@ -14,8 +14,9 @@
   <div v-else>
     <h1>Gioca la partita</h1>
     <h2>{{ secondiRimanenti }} secondi rimanenti per scegliere la mossa</h2>
+    <h2>{{ secondiRimanenti2 }} secondi rimanenti per saper eil risultato del round</h2>
     <h2> {{ scoreUser }}-{{ scoreOtherPlayer }}</h2>
-    <h2 v-if="scoreOtherPlayer != 0 || scoreUser != 0"> Nell'ultimo round l'altro giocatore ha buttato {{ handOtherPlayer }} e ha urlato {{ predictionOtherPlayer }}!!</h2>
+    <h2 v-if="notFirstRound"> Nell'ultimo round l'altro giocatore ha buttato {{ handOtherPlayer }} e ha urlato {{ predictionOtherPlayer }}!!</h2>
     <h2>Mano, scelta {{ hand }}</h2>
     <input type="radio" value=1 v-model="hand" />1<br />
     <input type="radio" value=2 v-model="hand" />2<br />
@@ -57,6 +58,7 @@ export default {
         predictionOtherPlayer: undefined,
         token: "",
         id: 0,
+        notFirstRound: false,
         weAreUser1: false,
         active: true,
         over: false
@@ -123,6 +125,7 @@ export default {
       },
       async getMove() {
         if(!this.active) return;
+        this.notFirstRound = true;
         try {
             let res = await backend.getMove(this.match.id);
             console.log(res.data);

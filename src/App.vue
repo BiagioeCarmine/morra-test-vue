@@ -1,7 +1,7 @@
 <template>
  <h1>Morra online by Biagio e Carmine</h1>
-  <logout />
   <button @click="goBackHome">Torna alla home</button>
+  <logout />
   <router-view />
 </template>
 <script>
