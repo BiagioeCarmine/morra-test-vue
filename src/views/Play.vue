@@ -15,6 +15,7 @@
     <h1>Gioca la partita</h1>
     <h2>{{ secondiRimanenti }} secondi rimanenti per scegliere la mossa</h2>
     <h2> {{ scoreUser }}-{{ scoreOtherPlayer }}</h2>
+    <h2 v-if="scoreOtherPlayer != 0 || scoreUser != 0"> Nell'ultimo round l'altro giocatore ha buttato {{ handOtherPlayer }} e ha urlato {{ predictionOtherPlayer }}!!</h2>
     <h2>Mano, scelta {{ hand }}</h2>
     <input type="radio" value=1 v-model="hand" />1<br />
     <input type="radio" value=2 v-model="hand" />2<br />
@@ -52,6 +53,8 @@ export default {
         remainingTime: 5,
         nextRoundTime: null,
         secondiRimanenti: 0,
+        handOtherPlayer: undefined,
+        predictionOtherPlayer: undefined,
         token: "",
         id: 0,
         weAreUser1: false,
@@ -125,9 +128,13 @@ export default {
             if(this.weAreUser1) {
               this.scoreUser = res.data.cur_points1;
               this.scoreOtherPlayer = res.data.cur_points2;
+              this.handOtherPlayer = res.data.hand2;
+              this.predictionOtherPlayer = this.handOtherPlayer = res.data.prediction2;
             } else {
               this.scoreUser = res.data.cur_points2;
               this.scoreOtherPlayer = res.data.cur_points1;
+              this.handOtherPlayer = res.data.hand1;
+              this.predictionOtherPlayer = this.handOtherPlayer = res.data.prediction1;
             }
             if(res.data.next_round_start == "over") {
               this.over = true;

@@ -1,4 +1,5 @@
 <template>
+ <h1>Morra online by Biagio e Carmine</h1>
   <logout />
   <router-view />
 </template>
