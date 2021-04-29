@@ -1,6 +1,7 @@
 <template>
  <h1>Morra online by Biagio e Carmine</h1>
   <logout />
+  <button @click="goBackHome">Torna alla home</button>
   <router-view />
 </template>
 <script>
@@ -9,6 +10,11 @@ import Logout from '@/components/Logout';
 export default {
   components: {
     Logout
+  },
+  methods: {
+    goBackHome: function() {
+      location.href = "/#/";
+    }
   }
 }
 </script>

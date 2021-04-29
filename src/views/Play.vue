@@ -87,7 +87,7 @@ export default {
       window.location.href = "/";
     }
 
-    setInterval(this.calculateRemainingSeconds, 500)
+    setInterval(this.calculateRemainingSeconds, 100)
     setTimeout(() => {
       if(this.waiting)
         window.location.href = "/";
@@ -108,7 +108,7 @@ export default {
         if(this.match.confirmed) {
           this.waiting = false;
           this.nextRoundTime = this.match.start_time;
-          let msToNextRound = new Date(this.match.start_time).getTime()-Date.now()-2000;
+          let msToNextRound = new Date(this.match.start_time).getTime()-Date.now();
           setTimeout(this.setMove, msToNextRound);
           this.remainingTime = Math.floor(msToNextRound/1000);
         }
@@ -117,7 +117,8 @@ export default {
         if(!this.active) return;
         try {
             let res = await backend.setMove(this.hand, this.prediction, this.match.id, this.token);
-            setTimeout(this.getMove, 2000);
+            let msToNextRound = new Date(res.data.next_round_results).getTime()-Date.now();
+            setTimeout(this.getMove, msToNextRound);
         } catch(e){ alert(`Si è verificato l'errore\n${e}`);}
       },
       async getMove() {
@@ -140,7 +141,7 @@ export default {
               this.over = true;
               return;
             }
-            let msToNextRound = new Date(res.data.next_round_start).getTime()-Date.now()-2000;
+            let msToNextRound = new Date(res.data.next_round_start).getTime()-Date.now();
             this.nextRoundTime = res.data.next_round_start;
             setTimeout(this.setMove, msToNextRound);
         } catch(e){ alert(`Si è verificato l'errore\n${e}`);}
