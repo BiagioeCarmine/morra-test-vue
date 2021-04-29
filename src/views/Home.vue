@@ -32,14 +32,23 @@ export default {
       userId: undefined,
       friendId: "",
       inPrivateQueue: false,
-      socket: null,
+      id: null,
       token: ""
     }
   },
-  mounted: function() {
+  mounted: async function() {
     let token = localStorage.getItem("token");
     if(token == null) {
-      console.log("andiamo al login");
+      console.log("andiamo al login per token mancante");
+      window.location.href = "/#/login";
+      return;
+    }
+
+    try {
+      let res = await backend.verifyUser(token);
+      this.id = res.data.id;
+    } catch(e) {
+      console.log("andiamo al login per token non valido");
       window.location.href = "/#/login";
       return;
     }
@@ -61,8 +70,8 @@ export default {
     handlePolling(data) {
       if(!this.waiting) return;
       if(data.inQueue == true) {
-        let pollTime = new Date(data.pollBefore);
-        setTimeout(() =>  {this.pollForMatches()}, pollTime.getTime()-Date.now());
+        let pollTime = new Date(data.pollBefore); // 2021-04-28T15:49:57.109787+00:00
+        setTimeout(this.pollForMatches, pollTime.getTime()-Date.now());
       } else {
         this.waiting = false;
         this.inPrivateQueue = false;
@@ -90,7 +99,6 @@ export default {
       } else {
         console.log(`stato sconosciuto: ${res.status}: ${res.data}`);
       }
-      
     },
     async addToPrivateQueue() {
       let res = await backend.addToPrivateQueue(this.token);

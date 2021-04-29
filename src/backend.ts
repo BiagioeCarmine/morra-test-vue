@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const URL = "http://localhost:5000"
+const URL = "https://morra.carminezacc.com"
 
 export default {
     async logIn(username: string, password: string) {
@@ -31,7 +31,22 @@ export default {
     },
     async addToPublicQueue(jwt: string) {
         const res = await axios.post(
-            URL+`/mm/queue`,'type=public',
+            URL+`/mm/queue`,
+            'type=public',
+            {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": "Bearer "+jwt
+                }
+            }
+        );
+        console.log(res);
+        return {data: res.data, status: res.status};
+
+    },
+    async verifyUser(jwt: string) {
+        const res = await axios.get(
+            URL+`/users/verify`,
             {
                 headers: {
                     "Authorization": "Bearer "+jwt
