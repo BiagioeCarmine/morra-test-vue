@@ -54,6 +54,7 @@ export default {
         remainingTime: 5,
         nextRoundTime: null,
         secondiRimanenti: 0,
+        secondiRimanenti2: 0,
         handOtherPlayer: undefined,
         predictionOtherPlayer: undefined,
         token: "",
@@ -89,7 +90,8 @@ export default {
       window.location.href = "/";
     }
 
-    setInterval(this.calculateRemainingSeconds, 100)
+    setInterval(this.calculateRemainingSeconds, 100);
+    setInterval(this.calculateRemainingSeconds2, 100);
     setTimeout(() => {
       if(this.waiting)
         window.location.href = "/";
@@ -102,6 +104,9 @@ export default {
       async calculateRemainingSeconds() {
         this.secondiRimanenti = Math.floor((new Date(this.nextRoundTime).getTime()-Date.now())/1000)
       },
+      async calculateRemainingSeconds2() {
+        this.secondiRimanenti2 = Math.floor((new Date(this.nextResultsTime).getTime()-Date.now())/1000)
+      },
       async getMatch() {
         this.match = await backend.getMatch(this.q);
         if(this.waiting && !this.match.confirmed) {
@@ -110,6 +115,7 @@ export default {
         if(this.match.confirmed) {
           this.waiting = false;
           this.nextRoundTime = this.match.start_time;
+          this.nextResultsTime = this.match.first_round_results;
           let msToNextRound = new Date(this.match.start_time).getTime()-Date.now();
           setTimeout(this.setMove, msToNextRound);
           this.remainingTime = Math.floor(msToNextRound/1000);
@@ -119,7 +125,7 @@ export default {
         if(!this.active) return;
         try {
             let res = await backend.setMove(this.hand, this.prediction, this.match.id, this.token);
-            let msToNextRound = new Date(res.data.next_round_results).getTime()-Date.now();
+            let msToNextRound = new Date(this.nextResultsTime).getTime()-Date.now();
             setTimeout(this.getMove, msToNextRound);
         } catch(e){ alert(`Si è verificato l'errore\n${e}`);}
       },
@@ -133,12 +139,12 @@ export default {
               this.scoreUser = res.data.cur_points1;
               this.scoreOtherPlayer = res.data.cur_points2;
               this.handOtherPlayer = res.data.hand2;
-              this.predictionOtherPlayer = this.handOtherPlayer = res.data.prediction2;
+              this.predictionOtherPlayer = res.data.prediction2;
             } else {
               this.scoreUser = res.data.cur_points2;
               this.scoreOtherPlayer = res.data.cur_points1;
               this.handOtherPlayer = res.data.hand1;
-              this.predictionOtherPlayer = this.handOtherPlayer = res.data.prediction1;
+              this.predictionOtherPlayer = res.data.prediction1;
             }
             if(res.data.next_round_start == "over") {
               this.over = true;
@@ -146,6 +152,7 @@ export default {
             }
             let msToNextRound = new Date(res.data.next_round_start).getTime()-Date.now();
             this.nextRoundTime = res.data.next_round_start;
+            this.nextResultsTime = res.data.next_round_results;
             setTimeout(this.setMove, msToNextRound);
         } catch(e){ alert(`Si è verificato l'errore\n${e}`);}
       }
